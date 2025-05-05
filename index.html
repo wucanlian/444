@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>实时工资计算器 - 从月初开始</title>
+  <title>实时工资计算器 - 工作时间计算（包含休息）</title>
   <style>
     body {
       background: linear-gradient(145deg, #0f0f1f, #1b1f3a);
@@ -86,13 +86,13 @@
 <body>
 
   <div class="container">
-    <h1>⏳ 从月初开始的工资计算器</h1>
+    <h1>⏳ 工作时间实时工资计算器（包含休息）</h1>
 
     <label for="monthlySalary">💰 月工资（元）</label>
     <input type="number" id="monthlySalary" placeholder="例如：12000" />
 
-    <label for="workHours">🕒 每天工作小时数</label>
-    <input type="number" id="workHours" placeholder="例如：8" />
+    <label for="workHours">🕒 每天工作小时数（除去午休）</label>
+    <input type="number" id="workHours" value="8" readonly />
 
     <label for="workDays">📅 每月出勤天数</label>
     <input type="number" id="workDays" placeholder="例如：22" />
@@ -107,16 +107,15 @@
 
     function startCalculation() {
       const salary = parseFloat(document.getElementById("monthlySalary").value);
-      const dailyHours = parseFloat(document.getElementById("workHours").value);
+      const dailyHours = 8; // 每天实际工作小时数，去掉了1小时午休
       const workDays = parseFloat(document.getElementById("workDays").value);
 
-      if (isNaN(salary) || isNaN(dailyHours) || isNaN(workDays) ||
-          salary <= 0 || dailyHours <= 0 || workDays <= 0) {
-        alert("请填写有效的工资、小时数和工作天数！");
+      if (isNaN(salary) || isNaN(workDays) || salary <= 0 || workDays <= 0) {
+        alert("请填写有效的工资、工作天数！");
         return;
       }
 
-      const totalWorkSeconds = workDays * dailyHours * 3600;
+      const totalWorkSeconds = workDays * dailyHours * 3600; // 每月实际工作秒数（8小时工作时间）
 
       if (timer) clearInterval(timer);
       timer = setInterval(() => {
@@ -126,8 +125,23 @@
         const startOfMonth = new Date(year, month, 1, 0, 0, 0);
         const elapsedSeconds = (now - startOfMonth) / 1000;
 
-        // 当前应得工资 = 工资 * (已过工作秒数 / 总工作秒数)
-        let earned = (elapsedSeconds / totalWorkSeconds) * salary;
+        // 获取当前时间
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        // 设置工作时间段：9:00 - 18:00（中午12:00到13:00不计算）
+        const startWorkHour = 9;
+        const endWorkHour = 18;
+        const lunchStartHour = 12;
+        const lunchEndHour = 13;
+
+        let earned = 0;
+
+        // 判断当前时间是否在工作时间段内：9:00 - 12:00 或 13:00 - 18:00
+        if ((currentHour >= startWorkHour && currentHour < lunchStartHour) ||
+            (currentHour >= lunchEndHour && currentHour < endWorkHour)) {
+          earned = (elapsedSeconds / totalWorkSeconds) * salary;
+        }
 
         // 不超过月薪上限
         earned = Math.min(earned, salary);
