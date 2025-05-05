@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>实时工资计算器 - 从月初开始</title>
+  <style>
+    body {
+      background: linear-gradient(145deg, #0f0f1f, #1b1f3a);
+      color: #00ffe1;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 35px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #00ffe1;
+      width: 360px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+      color: #00eaff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #00f5ff;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      background-color: #111;
+      color: #00ffe1;
+      border: 1px solid #00eaff;
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px;
+      width: 100%;
+      background-color: #00ffe1;
+      color: #000;
+      font-weight: bold;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00cccc;
+    }
+
+    #output {
+      margin-top: 30px;
+      font-size: 1.5em;
+      text-shadow: 0 0 8px #00ffe1;
+    }
+
+    .glow {
+      animation: glow 2s infinite ease-in-out;
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        text-shadow: 0 0 8px #00ffe1;
+      }
+      50% {
+        text-shadow: 0 0 20px #00fff7;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>⏳ 从月初开始的工资计算器</h1>
+
+    <label for="monthlySalary">💰 月工资（元）</label>
+    <input type="number" id="monthlySalary" placeholder="例如：12000" />
+
+    <label for="workHours">🕒 每天工作小时数</label>
+    <input type="number" id="workHours" placeholder="例如：8" />
+
+    <label for="workDays">📅 每月出勤天数</label>
+    <input type="number" id="workDays" placeholder="例如：22" />
+
+    <button onclick="startCalculation()">开始计算</button>
+
+    <div id="output" class="glow">当前工资：￥0.00</div>
+  </div>
+
+  <script>
+    let timer = null;
+
+    function startCalculation() {
+      const salary = parseFloat(document.getElementById("monthlySalary").value);
+      const dailyHours = parseFloat(document.getElementById("workHours").value);
+      const workDays = parseFloat(document.getElementById("workDays").value);
+
+      if (isNaN(salary) || isNaN(dailyHours) || isNaN(workDays) ||
+          salary <= 0 || dailyHours <= 0 || workDays <= 0) {
+        alert("请填写有效的工资、小时数和工作天数！");
+        return;
+      }
+
+      const totalWorkSeconds = workDays * dailyHours * 3600;
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 注意：0 = 一月
+        const startOfMonth = new Date(year, month, 1, 0, 0, 0);
+        const elapsedSeconds = (now - startOfMonth) / 1000;
+
+        // 当前应得工资 = 工资 * (已过工作秒数 / 总工作秒数)
+        let earned = (elapsedSeconds / totalWorkSeconds) * salary;
+
+        // 不超过月薪上限
+        earned = Math.min(earned, salary);
+
+        document.getElementById("output").textContent = "当前工资：￥" + earned.toFixed(2);
+      }, 1000);
+    }
+  </script>
+
+</body>
+</html>
